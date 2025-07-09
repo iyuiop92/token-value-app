@@ -1,1 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Token Value & MarketCap Pro</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    html, body, #root {
+      height: 100%;
+      margin: 0;
+      background: none;
+    }
+    .shadow-2xl {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.10);
+    }
+    .drop-shadow {
+      filter: drop-shadow(0 2px 4px rgba(74,144,226,0.15));
+    }
+    .inner-shadow {
+      box-shadow: inset 0 4px 24px rgba(59,130,246,0.13), 0 1px 2px rgba(0,0,0,0.03);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
 
+  <!-- React and ReactDOM production -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js" defer></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" defer></script>
+
+  <!-- Recharts UMD -->
+  <script src="https://unpkg.com/recharts/umd/Recharts.min.js" defer></script>
+
+  <script defer>
+    window.addEventListener('DOMContentLoaded', () => {
+      (function() {
+        const { useState, useEffect } = React;
+        const {
+          LineChart,
+          Line,
+          XAxis,
+          YAxis,
+          Tooltip,
+          ResponsiveContainer,
+          Legend,
+          CartesianGrid
+        } = Recharts;
+
+        function formatNumber(value) {
+          if (value === '' || value === null || isNaN(value)) return '';
+          const parts = value.toString().split('.');
+          parts[0] = Number(parts[0]).toLocaleString();
+          return parts.join('.');
+        }
+
+        function parseNumber(str) {
+          if (!str) return 0;
+          return Number(str.replace(/,/g, '')) || 0;
+        }
+
+        async function fetchTopTokens() {
+          try {
+            const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1');
+            if (!res.ok) throw new Error('Network response was not ok');
+            return await res.json();
+          } catch (e) {
+            console.error('Failed to fetch tokens:', e);
+            return [];
+          }
+        }
+
+        async function fetchTokenDetails(id) {
+          try {
+            const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true`);
+            if (!res.ok) throw new Error('Network response was not ok');
+            return await res.json();
+          } catch (e) {
+            console.error('Failed to fetch token details:', e);
+            return null;
+          }
+        }
+
+        function App() {
+          const [tokens, setTokens] = useState([]);
+          const [selectedToken, setSelectedToken] = useState('');
+          const [tokenLogo, setTokenLogo] = useState('');
+          const [loadingToken, setLoadingToken] = useState(false);
+
+          const [tokenSymbol, setTokenSymbol] = useState('');
+          const [initialPrice, setInitialPrice] = useState(0.24);
+          const [initialMcap, setInitialMcap] = useState(12000000);
+          const [newMcap, setNewMcap] = useState(500000000);
+          const [tokensHeld, setTokensHeld] = useState(2000);
+          const [growthPercent, setGrowthPercent] = useState(0);
+
+          const [chartData, setChartData] = useState([]);
+
+          useEffect(() => {
+            fetchTopTokens().then(setTokens);
+          }, []);
+
+          useEffect(() => {
+            if (!selectedToken) returni
+            setLoadingToken(true);
+            fetchTokenDetails(selectedToken).then(data => {
+              if (data && data.market_data) {
+                setTokenSymbol(data.symbol.toUpperCase());
+                setInitialPrice(data.market_data.current_price.usd || 0);
+                setInitialMcap(data.market_data.market_cap.usd || 0);
+                setTokenLogo(data.image.thumb || '');
+              }
+              setLoadingToken(false);
+            });
+          }, [selectedToken]);
+
+          const newPrice = (newMcap && initialMcap) ? (newMcap / initialMcap) * initialPrice : 0;
+          const holdingsValue = newPrice * tokensHeld;
+          const projectedPrice = growthPercent > 0 ? newPrice * (1 + growthPercent / 100) : 0;
+          const projectedValue = projectedPrice * tokensHeld;
+
+          useEffect(() => {
+            const steps = 10;
+            const mcapStart = Math.min(initialMcap, newMcap);
+            const mcapEnd = Math.max(initialMcap, newMcap);
+            const data = [];
+            for (let i = 0; i <= steps; i++) {
+              const mcap = mcapStart + ((mcapEnd - mcapStart) * i / steps);
+              const price = (mcap / initialMcap) * initialPrice;
+              const value = price * tokensHeld;
+              const projPrice = growthPercent > 0 ? price * (1 + growthPercent / 100) : price;
+              const projValue = projPrice * tokensHeld;
+              data.push({
+                'Market Cap': mcap,
+                'Token Price': price,
+                'Holdings Value': value,
+                'Projected Value': projValue
+              });
+            }
+            setChartData(data);
+          }, [initialPrice, initialMcap, newMcap, tokensHeld, growthPercent]);
+
+          function handleInputChange(e, setter, isFloat = false) {
+            const raw = e.target.value;
+            const cleaned = raw.replace(/[^0-9.,]/g, '');
+            const noCommas = cleaned.replace(/,/g, '');
+            const dotCount = (noCommas.match(/\./g) || []).length;
+            if (dotCount > 1) return;
+            const num = isFloat ? parseFloat(noCommas) : parseInt(noCommas, 10);
+            if (isNaN(num)) {
+              setter(0);
+            } else {
+              setter(num);
+            }
+          }
+
+          function resetForm() {
+            setTokenSymbol('');
+            setInitialPrice(0.24);
+            setInitialMcap(12000000);
+            setNewMcap(500000000);
+            setTokensHeld(2000);
+            setGrowthPercent(0);
+            setSelectedToken('');
+            setTokenLogo('');
+          }
+
+          function saveResults() {
+            const symbol = tokenSymbol.trim() || 'N/A';
+            const text = `
+Token Value & MarketCap Pro Report
+----------------------------------
+Token Symbol: ${symbol}
+Initial Token Price: $${initialPrice}
+Initial Market Cap: $${initialMcap}
+New Market Cap: $${newMcap}
+Tokens Held: ${tokensHeld}
+Expected Growth: ${growthPercent}%
+
+Results:
+- New Token Price: $${newPrice.toFixed(2)}
+- Holdings Value: $${holdingsValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+- Projected Price with Growth: $${projectedPrice.toFixed(2)}
+- Projected Holdings Value: $${projectedValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+
+Generated on: ${new Date().toLocaleString()}
+            `.trim();
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `TokenValueReport_${symbol}_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+
+          return React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-4' },
+            React.createElement('div', { className: 'max-w-md w-full bg-white shadow-2xl rounded-xl p-8 mb-8' },
+              React.createElement('h2', { className: 'text-2xl font-bold mb-6 text-blue-700 drop-shadow text-center flex items-center justify-center gap-2' },
+                tokenLogo && React.createElement('img', { src: tokenLogo, alt: tokenSymbol, className: 'inline-block w-7 h-7 rounded-full mr-2 align-middle' }),
+                '🚀 Token Value & MarketCap Pro'
+              ),
+
+              React.createElement('div', { className: 'mb-5' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Select Token (Live Data)'),
+                React.createElement('select', {
