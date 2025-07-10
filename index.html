@@ -101,7 +101,7 @@
           }, []);
 
           useEffect(() => {
-            if (!selectedToken) returni
+            if (!selectedToken) return; // <-- fixed typo here
             setLoadingToken(true);
             fetchTokenDetails(selectedToken).then(data => {
               if (data && data.market_data) {
@@ -207,3 +207,21 @@ Generated on: ${new Date().toLocaleString()}
               React.createElement('div', { className: 'mb-5' },
                 React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Select Token (Live Data)'),
                 React.createElement('select', {
+                  // ...presumably more code here to finish the form...
+                })
+              )
+            )
+            // ...rest of your component code...
+          );
+        }
+
+        // Mount the app (added this part)
+        ReactDOM.render(
+          React.createElement(App),
+          document.getElementById('root')
+        );
+      })();
+    });
+  </script>
+</body>
+</html>
