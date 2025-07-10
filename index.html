@@ -23,149 +23,151 @@
   </style>
 </head>
 <body>
-  <!-- Fallback text while React loads -->
+  <!-- Fallback while JS loads -->
   <div id="root">Loading Token Value & MarketCap Pro...</div>
 
-  <!-- React and ReactDOM -->
-  <script src="https://unpkg.com/react @17/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom @17/umd/react-dom.production.min.js"></script>
-  <!-- Recharts -->
-  <script src="https://unpkg.com/recharts/umd/Recharts.min.js "></script>
+  <!-- React and ReactDOM from JSDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/react @17/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom @17/umd/react-dom.production.min.js"></script>
+
+  <!-- Recharts from JSDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js "></script>
 
   <!-- App Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const { useState, useEffect } = React;
-      const {
-        LineChart,
-        Line,
-        XAxis,
-        YAxis,
-        Tooltip,
-        ResponsiveContainer,
-        Legend,
-        CartesianGrid
-      } = Recharts;
+      (function () {
+        const { useState, useEffect } = React;
+        const {
+          LineChart,
+          Line,
+          XAxis,
+          YAxis,
+          Tooltip,
+          ResponsiveContainer,
+          Legend,
+          CartesianGrid
+        } = Recharts;
 
-      function formatNumber(value) {
-        if (value === '' || value === null || isNaN(value)) return '';
-        const parts = value.toString().split('.');
-        parts[0] = Number(parts[0]).toLocaleString();
-        return parts.join('.');
-      }
-
-      function parseNumber(str) {
-        if (!str) return 0;
-        return Number(str.replace(/,/g, '')) || 0;
-      }
-
-      async function fetchTopTokens() {
-        try {
-          const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1');
-          if (!res.ok) throw new Error('Network response was not ok');
-          return await res.json();
-        } catch (e) {
-          console.error('Failed to fetch tokens:', e);
-          return [];
+        function formatNumber(value) {
+          if (value === '' || value === null || isNaN(value)) return '';
+          const parts = value.toString().split('.');
+          parts[0] = Number(parts[0]).toLocaleString();
+          return parts.join('.');
         }
-      }
 
-      async function fetchTokenDetails(id) {
-        try {
-          const res = await fetch(` https://api.coingecko.com/api/v3/coins/ ${id}?localization=false&tickers=false&market_data=true`);
-          if (!res.ok) throw new Error('Network response was not ok');
-          return await res.json();
-        } catch (e) {
-          console.error('Failed to fetch token details:', e);
-          return null;
+        function parseNumber(str) {
+          if (!str) return 0;
+          return Number(str.replace(/,/g, '')) || 0;
         }
-      }
 
-      function App() {
-        const [tokens, setTokens] = useState([]);
-        const [selectedToken, setSelectedToken] = useState('');
-        const [tokenLogo, setTokenLogo] = useState('');
-        const [loadingToken, setLoadingToken] = useState(false);
-        const [tokenSymbol, setTokenSymbol] = useState('');
-        const [initialPrice, setInitialPrice] = useState(0.24);
-        const [initialMcap, setInitialMcap] = useState(12000000);
-        const [newMcap, setNewMcap] = useState(500000000);
-        const [tokensHeld, setTokensHeld] = useState(2000);
-        const [growthPercent, setGrowthPercent] = useState(0);
-        const [chartData, setChartData] = useState([]);
+        async function fetchTopTokens() {
+          try {
+            const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1');
+            if (!res.ok) throw new Error('Network response was not ok');
+            return await res.json();
+          } catch (e) {
+            console.error('Failed to fetch tokens:', e);
+            return [];
+          }
+        }
 
-        useEffect(() => {
-          fetchTopTokens().then(setTokens);
-        }, []);
+        async function fetchTokenDetails(id) {
+          try {
+            const res = await fetch(` https://api.coingecko.com/api/v3/coins/ ${id}?localization=false&tickers=false&market_data=true`);
+            if (!res.ok) throw new Error('Network response was not ok');
+            return await res.json();
+          } catch (e) {
+            console.error('Failed to fetch token details:', e);
+            return null;
+          }
+        }
 
-        useEffect(() => {
-          if (!selectedToken) return;
-          setLoadingToken(true);
-          fetchTokenDetails(selectedToken).then(data => {
-            if (data && data.market_data) {
-              setTokenSymbol(data.symbol.toUpperCase());
-              setInitialPrice(data.market_data.current_price.usd || 0);
-              setInitialMcap(data.market_data.market_cap.usd || 0);
-              setTokenLogo(data.image.thumb || '');
-            }
-            setLoadingToken(false);
-          });
-        }, [selectedToken]);
+        function App() {
+          const [tokens, setTokens] = useState([]);
+          const [selectedToken, setSelectedToken] = useState('');
+          const [tokenLogo, setTokenLogo] = useState('');
+          const [loadingToken, setLoadingToken] = useState(false);
+          const [tokenSymbol, setTokenSymbol] = useState('');
+          const [initialPrice, setInitialPrice] = useState(0.24);
+          const [initialMcap, setInitialMcap] = useState(12000000);
+          const [newMcap, setNewMcap] = useState(500000000);
+          const [tokensHeld, setTokensHeld] = useState(2000);
+          const [growthPercent, setGrowthPercent] = useState(0);
+          const [chartData, setChartData] = useState([]);
 
-        const newPrice = (newMcap && initialMcap) ? (newMcap / initialMcap) * initialPrice : 0;
-        const holdingsValue = newPrice * tokensHeld;
-        const projectedPrice = growthPercent > 0 ? newPrice * (1 + growthPercent / 100) : newPrice;
-        const projectedValue = projectedPrice * tokensHeld;
+          useEffect(() => {
+            fetchTopTokens().then(setTokens);
+          }, []);
 
-        useEffect(() => {
-          const steps = 10;
-          const mcapStart = Math.min(initialMcap, newMcap);
-          const mcapEnd = Math.max(initialMcap, newMcap);
-          const data = [];
-          for (let i = 0; i <= steps; i++) {
-            const mcap = mcapStart + ((mcapEnd - mcapStart) * i / steps);
-            const price = (mcap / initialMcap) * initialPrice;
-            const value = price * tokensHeld;
-            const projPrice = growthPercent > 0 ? price * (1 + growthPercent / 100) : price;
-            const projValue = projPrice * tokensHeld;
-            data.push({
-              'Market Cap': mcap,
-              'Token Price': price,
-              'Holdings Value': value,
-              'Projected Value': projValue
+          useEffect(() => {
+            if (!selectedToken) return;
+            setLoadingToken(true);
+            fetchTokenDetails(selectedToken).then(data => {
+              if (data && data.market_data) {
+                setTokenSymbol(data.symbol.toUpperCase());
+                setInitialPrice(data.market_data.current_price.usd || 0);
+                setInitialMcap(data.market_data.market_cap.usd || 0);
+                setTokenLogo(data.image.thumb || '');
+              }
+              setLoadingToken(false);
             });
+          }, [selectedToken]);
+
+          const newPrice = (newMcap && initialMcap) ? (newMcap / initialMcap) * initialPrice : 0;
+          const holdingsValue = newPrice * tokensHeld;
+          const projectedPrice = growthPercent > 0 ? newPrice * (1 + growthPercent / 100) : newPrice;
+          const projectedValue = projectedPrice * tokensHeld;
+
+          useEffect(() => {
+            const steps = 10;
+            const mcapStart = Math.min(initialMcap, newMcap);
+            const mcapEnd = Math.max(initialMcap, newMcap);
+            const data = [];
+            for (let i = 0; i <= steps; i++) {
+              const mcap = mcapStart + ((mcapEnd - mcapStart) * i / steps);
+              const price = (mcap / initialMcap) * initialPrice;
+              const value = price * tokensHeld;
+              const projPrice = growthPercent > 0 ? price * (1 + growthPercent / 100) : price;
+              const projValue = projPrice * tokensHeld;
+              data.push({
+                'Market Cap': mcap,
+                'Token Price': price,
+                'Holdings Value': value,
+                'Projected Value': projValue
+              });
+            }
+            setChartData(data);
+          }, [initialPrice, initialMcap, newMcap, tokensHeld, growthPercent]);
+
+          function handleInputChange(e, setter, isFloat = false) {
+            const raw = e.target.value;
+            const cleaned = raw.replace(/[^0-9.,]/g, '');
+            const noCommas = cleaned.replace(/,/g, '');
+            const dotCount = (noCommas.match(/\./g) || []).length;
+            if (dotCount > 1) return;
+            const num = isFloat ? parseFloat(noCommas) : parseInt(noCommas, 10);
+            if (isNaN(num)) {
+              setter(0);
+            } else {
+              setter(num);
+            }
           }
-          setChartData(data);
-        }, [initialPrice, initialMcap, newMcap, tokensHeld, growthPercent]);
 
-        function handleInputChange(e, setter, isFloat = false) {
-          const raw = e.target.value;
-          const cleaned = raw.replace(/[^0-9.,]/g, '');
-          const noCommas = cleaned.replace(/,/g, '');
-          const dotCount = (noCommas.match(/\./g) || []).length;
-          if (dotCount > 1) return;
-          const num = isFloat ? parseFloat(noCommas) : parseInt(noCommas, 10);
-          if (isNaN(num)) {
-            setter(0);
-          } else {
-            setter(num);
+          function resetForm() {
+            setTokenSymbol('');
+            setInitialPrice(0.24);
+            setInitialMcap(12000000);
+            setNewMcap(500000000);
+            setTokensHeld(2000);
+            setGrowthPercent(0);
+            setSelectedToken('');
+            setTokenLogo('');
           }
-        }
 
-        function resetForm() {
-          setTokenSymbol('');
-          setInitialPrice(0.24);
-          setInitialMcap(12000000);
-          setNewMcap(500000000);
-          setTokensHeld(2000);
-          setGrowthPercent(0);
-          setSelectedToken('');
-          setTokenLogo('');
-        }
-
-        function saveResults() {
-          const symbol = tokenSymbol.trim() || 'N/A';
-          const text = `
+          function saveResults() {
+            const symbol = tokenSymbol.trim() || 'N/A';
+            const text = `
 Token Value & MarketCap Pro Report
 ----------------------------------
 Token Symbol: ${symbol}
@@ -180,122 +182,124 @@ Results:
 - Projected Price with Growth: $${projectedPrice.toFixed(2)}
 - Projected Holdings Value: $${projectedValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
 Generated on: ${new Date().toLocaleString()}
-          `.trim();
-          const blob = new Blob([text], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `TokenValueReport_${symbol}_${Date.now()}.txt`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
+            `.trim();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `TokenValueReport_${symbol}_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+
+          return React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50' },
+            React.createElement('div', { className: 'max-w-md w-full bg-white shadow-2xl rounded-xl p-8 mb-8' },
+              React.createElement('h2', { className: 'text-2xl font-bold mb-6 text-blue-700 drop-shadow text-center flex items-center justify-center gap-2' },
+                tokenLogo && React.createElement('img', { src: tokenLogo, alt: tokenSymbol, className: 'inline-block w-7 h-7 rounded-full mr-2 align-middle' }),
+                '🚀 Token Value & MarketCap Pro'
+              ),
+              React.createElement('div', { className: 'mb-5' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Select Token (Live Data)'),
+                React.createElement('select', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  value: selectedToken,
+                  onChange: e => setSelectedToken(e.target.value)
+                },
+                  React.createElement('option', { value: '' }, 'Select a token'),
+                  tokens.map(token =>
+                    React.createElement('option', { key: token.id, value: token.id }, `${token.name} (${token.symbol.toUpperCase()})`)
+                  )
+                )
+              ),
+              loadingToken && React.createElement('div', { className: 'mb-4 text-blue-500' }, 'Loading token data...'),
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Token Price (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(initialPrice),
+                  onChange: e => handleInputChange(e, setInitialPrice, true)
+                })
+              ),
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Market Cap (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(initialMcap),
+                  onChange: e => handleInputChange(e, setInitialMcap)
+                })
+              ),
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'New Market Cap (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(newMcap),
+                  onChange: e => handleInputChange(e, setNewMcap)
+                })
+              ),
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Tokens Held'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(tokensHeld),
+                  onChange: e => handleInputChange(e, setTokensHeld)
+                })
+              ),
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Expected Growth (%)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(growthPercent),
+                  onChange: e => handleInputChange(e, setGrowthPercent, true)
+                })
+              ),
+              React.createElement('div', { className: 'flex gap-2 mt-4' },
+                React.createElement('button', {
+                  className: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
+                  onClick: saveResults
+                }, 'Save Results'),
+                React.createElement('button', {
+                  className: 'px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400',
+                  onClick: resetForm
+                }, 'Reset')
+              )
+            ),
+            React.createElement('div', { className: 'max-w-2xl w-full bg-white shadow-2xl rounded-xl p-8' },
+              React.createElement('h3', { className: 'text-xl font-bold mb-4 text-blue-700' }, 'Results'),
+              React.createElement('div', { className: 'mb-2' }, `New Token Price: $${newPrice.toFixed(6)}`),
+              React.createElement('div', { className: 'mb-2' }, `Holdings Value: $${holdingsValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+              React.createElement('div', { className: 'mb-2' }, `Projected Price with Growth: $${projectedPrice.toFixed(6)}`),
+              React.createElement('div', { className: 'mb-4' }, `Projected Holdings Value: $${projectedValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+              React.createElement('div', { className: 'h-64 w-full' },
+                React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
+                  React.createElement(LineChart, { data: chartData },
+                    React.createElement(CartesianGrid, { strokeDasharray: "3 3" }),
+                    React.createElement(XAxis, { dataKey: "Market Cap", tickFormatter: v => `$${(v/1e6).toFixed(1)}M` }),
+                    React.createElement(YAxis, { tickFormatter: v => `$${v.toFixed(2)}` }),
+                    React.createElement(Tooltip, { formatter: v => `$${v.toLocaleString(undefined, {maximumFractionDigits: 2})}` }),
+                    React.createElement(Legend, {}),
+                    React.createElement(Line, { type: "monotone", dataKey: "Token Price", stroke: "#2563eb", strokeWidth: 2 }),
+                    React.createElement(Line, { type: "monotone", dataKey: "Holdings Value", stroke: "#059669", strokeWidth: 2 }),
+                    React.createElement(Line, { type: "monotone", dataKey: "Projected Value", stroke: "#f59e42", strokeWidth: 2 })
+                  )
+                )
+              )
+            )
+          );
         }
 
-        return React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50' },
-          React.createElement('div', { className: 'max-w-md w-full bg-white shadow-2xl rounded-xl p-8 mb-8' },
-            React.createElement('h2', { className: 'text-2xl font-bold mb-6 text-blue-700 drop-shadow text-center flex items-center justify-center gap-2' },
-              tokenLogo && React.createElement('img', { src: tokenLogo, alt: tokenSymbol, className: 'inline-block w-7 h-7 rounded-full mr-2 align-middle' }),
-              '🚀 Token Value & MarketCap Pro'
-            ),
-            React.createElement('div', { className: 'mb-5' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Select Token (Live Data)'),
-              React.createElement('select', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                value: selectedToken,
-                onChange: e => setSelectedToken(e.target.value)
-              },
-                React.createElement('option', { value: '' }, 'Select a token'),
-                tokens.map(token =>
-                  React.createElement('option', { key: token.id, value: token.id }, `${token.name} (${token.symbol.toUpperCase()})`)
-                )
-              )
-            ),
-            loadingToken && React.createElement('div', { className: 'mb-4 text-blue-500' }, 'Loading token data...'),
-            React.createElement('div', { className: 'mb-4' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Token Price (USD)'),
-              React.createElement('input', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                type: 'text',
-                value: formatNumber(initialPrice),
-                onChange: e => handleInputChange(e, setInitialPrice, true)
-              })
-            ),
-            React.createElement('div', { className: 'mb-4' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Market Cap (USD)'),
-              React.createElement('input', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                type: 'text',
-                value: formatNumber(initialMcap),
-                onChange: e => handleInputChange(e, setInitialMcap)
-              })
-            ),
-            React.createElement('div', { className: 'mb-4' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'New Market Cap (USD)'),
-              React.createElement('input', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                type: 'text',
-                value: formatNumber(newMcap),
-                onChange: e => handleInputChange(e, setNewMcap)
-              })
-            ),
-            React.createElement('div', { className: 'mb-4' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Tokens Held'),
-              React.createElement('input', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                type: 'text',
-                value: formatNumber(tokensHeld),
-                onChange: e => handleInputChange(e, setTokensHeld)
-              })
-            ),
-            React.createElement('div', { className: 'mb-4' },
-              React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Expected Growth (%)'),
-              React.createElement('input', {
-                className: 'w-full border border-gray-300 rounded px-3 py-2',
-                type: 'text',
-                value: formatNumber(growthPercent),
-                onChange: e => handleInputChange(e, setGrowthPercent, true)
-              })
-            ),
-            React.createElement('div', { className: 'flex gap-2 mt-4' },
-              React.createElement('button', {
-                className: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
-                onClick: saveResults
-              }, 'Save Results'),
-              React.createElement('button', {
-                className: 'px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400',
-                onClick: resetForm
-              }, 'Reset')
-            )
-          ),
-          React.createElement('div', { className: 'max-w-2xl w-full bg-white shadow-2xl rounded-xl p-8' },
-            React.createElement('h3', { className: 'text-xl font-bold mb-4 text-blue-700' }, 'Results'),
-            React.createElement('div', { className: 'mb-2' }, `New Token Price: $${newPrice.toFixed(6)}`),
-            React.createElement('div', { className: 'mb-2' }, `Holdings Value: $${holdingsValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
-            React.createElement('div', { className: 'mb-2' }, `Projected Price with Growth: $${projectedPrice.toFixed(6)}`),
-            React.createElement('div', { className: 'mb-4' }, `Projected Holdings Value: $${projectedValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
-            React.createElement('div', { className: 'h-64 w-full' },
-              React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-                React.createElement(LineChart, { data: chartData },
-                  React.createElement(CartesianGrid, { strokeDasharray: "3 3" }),
-                  React.createElement(XAxis, { dataKey: "Market Cap", tickFormatter: v => `$${(v/1e6).toFixed(1)}M` }),
-                  React.createElement(YAxis, { tickFormatter: v => `$${v.toFixed(2)}` }),
-                  React.createElement(Tooltip, { formatter: v => `$${v.toLocaleString(undefined, {maximumFractionDigits: 2})}` }),
-                  React.createElement(Legend, {}),
-                  React.createElement(Line, { type: "monotone", dataKey: "Token Price", stroke: "#2563eb", strokeWidth: 2 }),
-                  React.createElement(Line, { type: "monotone", dataKey: "Holdings Value", stroke: "#059669", strokeWidth: 2 }),
-                  React.createElement(Line, { type: "monotone", dataKey: "Projected Value", stroke: "#f59e42", strokeWidth: 2 })
-                )
-              )
-            )
-          )
+        ReactDOM.render(
+          React.createElement(App),
+          document.getElementById('root')
         );
-      }
 
-      ReactDOM.render(
-        React.createElement(App),
-        document.getElementById('root')
-      );
+      })();
     });
   </script>
 </body>
