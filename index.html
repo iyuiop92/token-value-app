@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Token Value & MarketCap Pro</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss @2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
     html, body, #root {
       height: 100%;
@@ -23,19 +23,12 @@
   </style>
 </head>
 <body>
-  <!-- Fallback while JS loads -->
   <div id="root">Loading Token Value & MarketCap Pro...</div>
-
-  <!-- React and ReactDOM from JSDelivr CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/react @17/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom @17/umd/react-dom.production.min.js"></script>
-
-  <!-- Recharts -->
-  <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js "></script>
-
-  <!-- App Script -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    (function() {
       const { useState, useEffect } = React;
       const {
         LineChart,
@@ -73,7 +66,8 @@
 
       async function fetchTokenDetails(id) {
         try {
-          const res = await fetch(` https://api.coingecko.com/api/v3/coins/ ${id}?localization=false&tickers=false&market_data=true`);
+          // Corrected the URL by removing extra spaces
+          const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true`);
           if (!res.ok) throw new Error('Network response was not ok');
           return await res.json();
         } catch (e) {
@@ -292,12 +286,11 @@ Generated on: ${new Date().toLocaleString()}
           )
         );
       }
-
       ReactDOM.render(
         React.createElement(App),
         document.getElementById('root')
       );
-    });
+    })();
   </script>
 </body>
 </html>
