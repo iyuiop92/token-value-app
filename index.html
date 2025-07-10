@@ -26,13 +26,14 @@
   <div id="root"></div>
 
   <!-- React and ReactDOM production -->
-  <script src="https://unpkg.com/react@17/umd/react.production.min.js" defer></script>
-  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" defer></script>
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
 
   <!-- Recharts UMD -->
-  <script src="https://unpkg.com/recharts/umd/Recharts.min.js" defer></script>
+  <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
 
-  <script defer>
+  <!-- Your app code: must come last, no defer -->
+  <script>
     (function() {
       const { useState, useEffect } = React;
       const {
