@@ -101,7 +101,7 @@
           }, []);
 
           useEffect(() => {
-            if (!selectedToken) return; // <-- fixed typo here
+            if (!selectedToken) return;
             setLoadingToken(true);
             fetchTokenDetails(selectedToken).then(data => {
               if (data && data.market_data) {
@@ -116,7 +116,7 @@
 
           const newPrice = (newMcap && initialMcap) ? (newMcap / initialMcap) * initialPrice : 0;
           const holdingsValue = newPrice * tokensHeld;
-          const projectedPrice = growthPercent > 0 ? newPrice * (1 + growthPercent / 100) : 0;
+          const projectedPrice = growthPercent > 0 ? newPrice * (1 + growthPercent / 100) : newPrice;
           const projectedValue = projectedPrice * tokensHeld;
 
           useEffect(() => {
@@ -197,7 +197,7 @@ Generated on: ${new Date().toLocaleString()}
             URL.revokeObjectURL(url);
           }
 
-          return React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-4' },
+          return React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50' },
             React.createElement('div', { className: 'max-w-md w-full bg-white shadow-2xl rounded-xl p-8 mb-8' },
               React.createElement('h2', { className: 'text-2xl font-bold mb-6 text-blue-700 drop-shadow text-center flex items-center justify-center gap-2' },
                 tokenLogo && React.createElement('img', { src: tokenLogo, alt: tokenSymbol, className: 'inline-block w-7 h-7 rounded-full mr-2 align-middle' }),
@@ -207,15 +207,106 @@ Generated on: ${new Date().toLocaleString()}
               React.createElement('div', { className: 'mb-5' },
                 React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Select Token (Live Data)'),
                 React.createElement('select', {
-                  // ...presumably more code here to finish the form...
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  value: selectedToken,
+                  onChange: e => setSelectedToken(e.target.value)
+                },
+                  React.createElement('option', { value: '' }, 'Select a token'),
+                  tokens.map(token =>
+                    React.createElement('option', { key: token.id, value: token.id }, `${token.name} (${token.symbol.toUpperCase()})`)
+                  )
+                )
+              ),
+
+              loadingToken && React.createElement('div', { className: 'mb-4 text-blue-500' }, 'Loading token data...'),
+
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Token Price (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(initialPrice),
+                  onChange: e => handleInputChange(e, setInitialPrice, true)
                 })
+              ),
+
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Initial Market Cap (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(initialMcap),
+                  onChange: e => handleInputChange(e, setInitialMcap)
+                })
+              ),
+
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'New Market Cap (USD)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(newMcap),
+                  onChange: e => handleInputChange(e, setNewMcap)
+                })
+              ),
+
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Tokens Held'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(tokensHeld),
+                  onChange: e => handleInputChange(e, setTokensHeld)
+                })
+              ),
+
+              React.createElement('div', { className: 'mb-4' },
+                React.createElement('label', { className: 'block text-gray-700 font-semibold mb-1' }, 'Expected Growth (%)'),
+                React.createElement('input', {
+                  className: 'w-full border border-gray-300 rounded px-3 py-2',
+                  type: 'text',
+                  value: formatNumber(growthPercent),
+                  onChange: e => handleInputChange(e, setGrowthPercent, true)
+                })
+              ),
+
+              React.createElement('div', { className: 'flex gap-2 mt-4' },
+                React.createElement('button', {
+                  className: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
+                  onClick: saveResults
+                }, 'Save Results'),
+                React.createElement('button', {
+                  className: 'px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400',
+                  onClick: resetForm
+                }, 'Reset')
+              )
+            ),
+
+            React.createElement('div', { className: 'max-w-2xl w-full bg-white shadow-2xl rounded-xl p-8' },
+              React.createElement('h3', { className: 'text-xl font-bold mb-4 text-blue-700' }, 'Results'),
+              React.createElement('div', { className: 'mb-2' }, `New Token Price: $${newPrice.toFixed(6)}`),
+              React.createElement('div', { className: 'mb-2' }, `Holdings Value: $${holdingsValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+              React.createElement('div', { className: 'mb-2' }, `Projected Price with Growth: $${projectedPrice.toFixed(6)}`),
+              React.createElement('div', { className: 'mb-4' }, `Projected Holdings Value: $${projectedValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+
+              React.createElement('div', { className: 'h-64 w-full' },
+                React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
+                  React.createElement(LineChart, { data: chartData },
+                    React.createElement(CartesianGrid, { strokeDasharray: "3 3" }),
+                    React.createElement(XAxis, { dataKey: "Market Cap", tickFormatter: v => `$${(v/1e6).toFixed(1)}M` }),
+                    React.createElement(YAxis, { tickFormatter: v => `$${v.toFixed(2)}` }),
+                    React.createElement(Tooltip, { formatter: v => `$${v.toLocaleString(undefined, {maximumFractionDigits: 2})}` }),
+                    React.createElement(Legend, {}),
+                    React.createElement(Line, { type: "monotone", dataKey: "Token Price", stroke: "#2563eb", strokeWidth: 2 }),
+                    React.createElement(Line, { type: "monotone", dataKey: "Holdings Value", stroke: "#059669", strokeWidth: 2 }),
+                    React.createElement(Line, { type: "monotone", dataKey: "Projected Value", stroke: "#f59e42", strokeWidth: 2 })
+                  )
+                )
               )
             )
-            // ...rest of your component code...
           );
         }
 
-        // Mount the app (added this part)
         ReactDOM.render(
           React.createElement(App),
           document.getElementById('root')
